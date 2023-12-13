@@ -1,0 +1,47 @@
+syntax = "proto3";
+
+//option csharp_namespace = "Draught_Drinks_Store_GRPC";
+
+package product.v1;
+
+service Product {
+  rpc GetAll (ProductGetAllRequest) returns (ProductGetAllResponce);
+  rpc Get (ProductGetRequest) returns (ProductGetResponce);
+  // GetByName
+}
+
+message ProductGetAllRequest{
+	message Filter{
+		message Pagination{
+			optional int32 offset = 1;
+			optional int32 count = 2;
+		}
+
+		optional int32 category_id = 1;
+		optional Pagination pagination = 2;
+	}
+
+	optional Filter filter = 1;
+}
+
+message ProductGetAllResponce{
+	int32 count = 1;
+	int32 index_first = 2;
+	int32 index_last = 3;
+
+	repeated ProductGetResponce.Product products = 4;
+}
+
+message ProductGetRequest{
+	int32 id = 1;
+}
+
+message ProductGetResponce{
+	message Product{
+		int32 id = 1;
+		string name = 2;
+		string price = 3;
+	}
+
+	Product product = 1;
+}

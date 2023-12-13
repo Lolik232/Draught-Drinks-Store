@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+//option csharp_namespace = "Draught_Drinks_Store_GRPC";
+
+package authorization.v1;
+
+
+service Authorization {
+  rpc Register (RegisterRequest) returns (RegisterResponce);
+  rpc Login (LoginRequest) returns (LoginResponce);
+}
+
+message RegisterRequest{
+	message UserInfo{
+		string login = 1;
+		string email = 2;
+		string password = 3;
+		string phone_number = 4;
+	}
+
+	UserInfo user = 1;
+}
+
+message RegisterResponce{
+	string message = 1;
+}
+
+message LoginRequest{
+	string login = 1;
+	string password = 2;
+}
+
+message LoginResponce{
+	string token = 1;
+	int32 lifetime = 2;
+	reserved 3;						// refresh token
+}
