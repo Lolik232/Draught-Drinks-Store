@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace DAL.EFCore.PostgreSQL;
+﻿namespace DAL.EFCore.PostgreSQL;
 
 public partial class Payment
 {

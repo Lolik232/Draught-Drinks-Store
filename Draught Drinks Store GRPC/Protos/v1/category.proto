@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+//option csharp_namespace = "Draught_Drinks_Store_GRPC";
+
+package category.v1;
+
+import "google/protobuf/empty.proto";
+
+service Category {
+  rpc GetAll (google.protobuf.Empty) returns (CategoryGetAllResponce);
+  rpc Get (CategoryGetRequest) returns (CategoryGetResponce);
+}
+
+message CategoryGetAllResponce{
+	repeated CategoryGetResponce.Category categories = 4;
+}
+
+message CategoryGetRequest{
+	oneof filter{
+		int32 id = 1;
+		string nameEn = 2;
+	}
+}
+
+message CategoryGetResponce{
+	message Category{
+		int32 id = 1;
+		string nameRu = 2;
+		string nameEn = 3;
+		repeated Category subcategories = 4;
+	}
+
+	Category category = 1;
+}

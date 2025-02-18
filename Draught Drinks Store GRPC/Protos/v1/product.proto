@@ -17,8 +17,12 @@ message ProductGetAllRequest{
 			optional int32 count = 2;
 		}
 
-		optional int32 category_id = 1;
-		optional Pagination pagination = 2;
+		oneof category{
+			 int32 category_id = 1;
+			 string nameEn = 2;	
+		}
+
+		optional Pagination pagination = 3;
 	}
 
 	optional Filter filter = 1;
@@ -40,7 +44,9 @@ message ProductGetResponce{
 	message Product{
 		int32 id = 1;
 		string name = 2;
-		string price = 3;
+		string image_url = 3;
+		string price = 4;
+		int32 category_id = 5;
 	}
 
 	Product product = 1;

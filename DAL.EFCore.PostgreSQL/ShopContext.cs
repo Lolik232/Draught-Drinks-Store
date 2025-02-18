@@ -5,14 +5,15 @@ namespace DAL.EFCore.PostgreSQL;
 public partial class ShopContext : DbContext
 {
     private readonly string _connectionString;
+
     public ShopContext()
+
     {
     }
 
-    public ShopContext(DbContextOptions<ShopContext> options, string connectionString)
+    public ShopContext(DbContextOptions<ShopContext> options)
         : base(options)
     {
-        _connectionString = connectionString;
     }
 
     public virtual DbSet<ContactData> ContactData { get; set; }
@@ -32,7 +33,7 @@ public partial class ShopContext : DbContext
     public virtual DbSet<User> Users { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    {
+    { 
         base.OnConfiguring(optionsBuilder);
     }
 
