@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace DAL.EFCore.PostgreSQL;
 
+namespace DAL.Abstractions.Entities;
 public partial class ProductsInOrder
 {
-    public long OrderNumber { get; set; }
+    public int OrderNumber { get; set; }
 
-    public long ProductId { get; set; }
+    public int ProductId { get; set; }
 
     public int Count { get; set; }
 

@@ -1,4 +1,4 @@
-﻿using DAL.EFCore.PostgreSQL;
+﻿using DAL.Abstractions.Entities;
 using System.Linq.Expressions;
 
 namespace DAL.Abstractions.Interfaces.Repositories

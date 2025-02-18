@@ -31,4 +31,5 @@ message OrderStatusResponce{
 	string status = 3;
 	string sum = 4;
 	reserved 5;								// shop
+	string payment_link = 6;
 }

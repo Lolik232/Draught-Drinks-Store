@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace DAL.EFCore.PostgreSQL;
+
+namespace DAL.Abstractions.Entities;
 
 public partial class ProductsInStock
 {
-    public long Id { get; set; }
+    public int Id { get; set; }
 
-    public long ProductId { get; set; }
+    public int ProductId { get; set; }
 
     public int Count { get; set; }
 

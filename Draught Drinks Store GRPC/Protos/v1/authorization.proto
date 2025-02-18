@@ -5,6 +5,7 @@ syntax = "proto3";
 package authorization.v1;
 
 import "google/protobuf/empty.proto";
+
 service Authorization {
   rpc Register (RegisterRequest) returns (RegisterResponce);
   rpc Login (LoginRequest) returns (LoginResponce);
@@ -33,5 +34,14 @@ message LoginRequest{
 message LoginResponce{
 	string token = 1;
 	int32 lifetime = 2;
+
+
+	User user = 4;
+
+	message User{
+		string email = 1;
+		string phone_number = 2;
+	}
+
 	reserved 3;						// refresh token
 }

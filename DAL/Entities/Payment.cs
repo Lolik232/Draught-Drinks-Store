@@ -1,14 +1,16 @@
-﻿namespace DAL.EFCore.PostgreSQL;
+﻿using System;
+using System.Collections.Generic;
+
+namespace DAL.Abstractions.Entities;
 
 public partial class Payment
 {
-    public long Id { get; set; }
+    public int Id { get; set; }
 
-    public DateTime Status { get; set; }
+    public string Status { get; set; } = null!;
 
     public decimal Sum { get; set; }
 
-    public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
-
+    public virtual Order? Order { get; set; }
     public virtual PaymentInExternalService? PaymentInExternalService { get; set; }
 }

@@ -1,107 +1,87 @@
-﻿using Google.Protobuf.WellKnownTypes;
+﻿using Core.BussinesLogic.Abstractions.Interfaces;
+using Core.BussinesLogic.Abstractions.Primitives;
 using Grpc.Core;
 using Product.V1;
-using CategoryModel = Category.V1.CategoryGetResponce.Types.Category;
-using ProductModel = Product.V1.ProductGetResponce.Types.Product;
 
 namespace Draught_Drinks_Store_GRPC.Services.v1
 {
     public class ProductService : Product.V1.Product.ProductBase
     {
-        CategoryService categoryService = new CategoryService();
+        private readonly IProductService _productService;
 
-        private List<ProductModel> products = new() {
-            new(){
-            Id =1,
-            CategoryId = 4,
-            Name = "Балтика 3",
-            ImageUrl = "https://alivaria.by/media/41457/baltika_3_05l_2016.png?height=1140&mode=max",
-            Price = "1000 RUB"
-            },
-              new(){
-            Id =2,
-            CategoryId = 5,
-            Name = "Балтика 4",
-            ImageUrl = "https://alivaria.by/media/41457/baltika_3_05l_2016.png?height=1140&mode=max",
-            Price = "1050 RUB"
-            },
-
-            new(){
-            Id =3,
-            CategoryId = 6,
-            Name = "Балтика Кола",
-            ImageUrl = "https://lexa.bonsai-sushi.ru/wp-content/uploads/2021/12/Coca-Cola_0-5.jpg",
-            Price = "100 RUB"
-            },
-             new(){
-            Id =4,
-            CategoryId = 7,
-            Name = "Байкал",
-            ImageUrl = "https://all-aforizmy.ru/wp-content/uploads/2022/02/scale_1200-8.jpg",
-            Price = "10000000 RUB"
-            },
-
-        };
-
-        public override Task<ProductGetResponce> Get(ProductGetRequest request, ServerCallContext context)
+        public ProductService(IProductService productService)
         {
-            return base.Get(request, context);
+            _productService = productService;
         }
 
-
-        void GetSubcategories(CategoryModel curCategory, List<int> subcategories)
+        public override async Task<ProductGetResponce> Get(ProductGetRequest request, ServerCallContext context)
         {
-            subcategories.Add(curCategory.Id);
-            foreach (var subcategory in curCategory.Subcategories)
-            {
-                GetSubcategories(subcategory, subcategories);
-            }
-        }
+            var result = await _productService.GetProductByIdAsync(request.Id);
 
-        List<int> GetSubcategories(int categoryId)
-        {
-            var category = categoryService.FindCategory(categoryId);
-            List<int> subcategories = new() { categoryId };
-
-            foreach (var subcategory in category.Subcategories)
+            if (result.IsFailture)
             {
-                GetSubcategories(subcategory, subcategories);
+                throw new RpcException(new Status(StatusCode.NotFound, ""));
             }
 
-            return subcategories;
+            var productResponce = new ProductGetResponce
+            {
+                Product = new ProductGetResponce.Types.Product
+                {
+                    Id = (int)result.Value.Id,
+                    ImageUrl = result.Value.ImageUrl,
+                    CategoryId = (int)result.Value.CategoryId,
+                    Name = result.Value.Name,
+                    Price = result.Value.Price.ToString()
+                }
+            };
+
+            return await Task.FromResult(productResponce);
         }
 
-        public override Task<ProductGetAllResponce> GetAll(ProductGetAllRequest request, ServerCallContext context)
+        public override async Task<ProductGetAllResponce> GetAll(ProductGetAllRequest request, ServerCallContext context)
         {
-            var filter = request.Filter;
-            int categoryID = 1;
+            Result<ICollection<DAL.Abstractions.Entities.Product>> result;
 
-            var responce = new ProductGetAllResponce();
 
-            switch (filter.CategoryCase)
+            switch (request.Filter?.CategoryCase)
             {
                 case ProductGetAllRequest.Types.Filter.CategoryOneofCase.CategoryId:
-                    categoryID = filter.CategoryId;
+                    result = await _productService.GetAllProductsByCategoryAsync(0, int.MaxValue, request.Filter.CategoryId);
                     break;
+
                 case ProductGetAllRequest.Types.Filter.CategoryOneofCase.NameEn:
-                    var category = categoryService.FindCategory(filter.NameEn);
-                    categoryID = category.Id;
+                    result = await _productService.GetAllProductsByCategoryAsync(0, int.MaxValue, request.Filter.NameEn);
                     break;
-                case ProductGetAllRequest.Types.Filter.CategoryOneofCase.None:
-                    responce.Count = products.Count;
-                    responce.Products.AddRange(products);
-                    return Task.FromResult(responce);
+                default:
+                    result = await _productService.GetAllProductsAsync(0, int.MaxValue);
+                    break;
             }
 
-            var categories = GetSubcategories(categoryID);
+            if (request.Filter is null)
+            {
+                result = await _productService.GetAllProductsAsync(0, int.MaxValue);
+            }
 
-            var productsByCategory = products.Where(pr => categories.Contains(pr.CategoryId));
+            if (result.IsFailture)
+            {
+                throw new RpcException(new Status(StatusCode.NotFound, ""));
+            }
 
-            responce.Products.AddRange(productsByCategory);
-            responce.Count = responce.Products.Count;
+            var responce = new ProductGetAllResponce
+            {
+                Count = result.Value.Count
+            };
 
+            responce.Products.AddRange(result.Value.Select(pr => new ProductGetResponce.Types.Product
+            {
+                Id = (int)pr.Id,
+                CategoryId = (int)pr.CategoryId,
+                ImageUrl = pr.ImageUrl,
+                Price = pr.Price.ToString().Replace(',', '.') + " RUB",
+                Name = pr.Name
+            }).ToList());
 
-            return Task.FromResult(responce);
+            return await Task.FromResult(responce);
         }
     }
 }

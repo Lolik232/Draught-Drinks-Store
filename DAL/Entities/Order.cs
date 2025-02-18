@@ -1,22 +1,25 @@
-﻿namespace DAL.EFCore.PostgreSQL;
+﻿using System;
+using System.Collections.Generic;
 
+
+namespace DAL.Abstractions.Entities;
 public partial class Order
 {
-    public long Number { get; set; }
+    public int Number { get; set; }
 
     public DateTime Date { get; set; }
 
     public string Status { get; set; } = null!;
 
-    public long PaymentId { get; set; }
+    public int PaymentId { get; set; }
 
-    public long ContactDataId { get; set; }
+    public int ContactDataId { get; set; }
 
     public string? PromoCode { get; set; }
 
-    public virtual ContactData ContactData { get; set; } = null!;
+    public virtual ContactData? ContactData { get; set; }
 
-    public virtual Payment Payment { get; set; } = null!;
+    public virtual Payment? Payment { get; set; }
 
     public virtual ICollection<ProductsInOrder> ProductsInOrders { get; set; } = new List<ProductsInOrder>();
 }

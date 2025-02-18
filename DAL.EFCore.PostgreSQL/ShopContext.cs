@@ -1,20 +1,19 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using DAL.Abstractions.Entities;
 
 namespace DAL.EFCore.PostgreSQL;
 
 public partial class ShopContext : DbContext
 {
-    private readonly string _connectionString;
-
-    public ShopContext()
-
-    {
-    }
-
     public ShopContext(DbContextOptions<ShopContext> options)
         : base(options)
     {
     }
+
+    public ShopContext()
+    {
+    }
+
 
     public virtual DbSet<ContactData> ContactData { get; set; }
 
@@ -33,7 +32,7 @@ public partial class ShopContext : DbContext
     public virtual DbSet<User> Users { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    { 
+    {
         base.OnConfiguring(optionsBuilder);
     }
 
@@ -47,9 +46,7 @@ public partial class ShopContext : DbContext
 
             entity.HasIndex(e => e.PhoneNumber, "contact_data_phone_number_key").IsUnique();
 
-            entity.Property(e => e.Id)
-                .ValueGeneratedNever()
-                .HasColumnName("id");
+            entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.PhoneNumber)
                 .HasMaxLength(50)
                 .HasColumnName("phone_number");
@@ -77,8 +74,8 @@ public partial class ShopContext : DbContext
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("orders_contact_data_id_fkey");
 
-            entity.HasOne(d => d.Payment).WithMany(p => p.Orders)
-                .HasForeignKey(d => d.PaymentId)
+            entity.HasOne(d => d.Payment).WithOne(p => p.Order)
+                .HasForeignKey<Order>(d => d.PaymentId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("orders_payment_id_fkey");
         });
@@ -90,7 +87,9 @@ public partial class ShopContext : DbContext
             entity.ToTable("payments");
 
             entity.Property(e => e.Id).HasColumnName("id");
-            entity.Property(e => e.Status).HasColumnName("status");
+            entity.Property(e => e.Status)
+                .HasMaxLength(10)
+                .HasColumnName("status");
             entity.Property(e => e.Sum)
                 .HasColumnType("money")
                 .HasColumnName("sum");
@@ -171,8 +170,8 @@ public partial class ShopContext : DbContext
             entity.Property(e => e.Count).HasColumnName("count");
             entity.Property(e => e.ProductId).HasColumnName("product_id");
 
-            entity.HasOne(d => d.Product).WithMany(p => p.ProductsInStocks)
-                .HasForeignKey(d => d.ProductId)
+            entity.HasOne(d => d.Product).WithOne(p => p.ProductsInStocks)
+                .HasForeignKey<ProductsInStock>(d => d.ProductId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("products_in_stock_product_id_fkey");
         });
@@ -185,9 +184,7 @@ public partial class ShopContext : DbContext
 
             entity.HasIndex(e => e.Email, "users_email_key").IsUnique();
 
-            entity.Property(e => e.Id)
-                .ValueGeneratedNever()
-                .HasColumnName("id");
+            entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.ContactDataId).HasColumnName("contact_data_id");
             entity.Property(e => e.Email)
                 .HasMaxLength(50)
@@ -200,8 +197,8 @@ public partial class ShopContext : DbContext
                 .HasMaxLength(10)
                 .HasColumnName("role");
 
-            entity.HasOne(d => d.ContactData).WithMany(p => p.Users)
-                .HasForeignKey(d => d.ContactDataId)
+            entity.HasOne(d => d.ContactData).WithOne(p => p.User)
+                .HasForeignKey<User>(d => d.ContactDataId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("users_contact_data_id_fkey");
         });

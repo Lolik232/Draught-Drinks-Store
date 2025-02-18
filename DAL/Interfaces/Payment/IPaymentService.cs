@@ -1,4 +1,5 @@
 ﻿using System.Text.Json.Serialization;
+using DAL.Abstractions.Entities;
 
 namespace DAL.Abstractions.Interfaces.Payment
 {
@@ -17,9 +18,8 @@ namespace DAL.Abstractions.Interfaces.Payment
 
     public interface IPaymentService
     {
-        Task<string> CreatePayment(
-             int paymentNumber,
-             int orderNumber,
+        Task< string> CreatePayment(
+            int orderNumber,
              string returnUrl,
              Amount amount,
              string description);

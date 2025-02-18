@@ -7,7 +7,6 @@ package product.v1;
 service Product {
   rpc GetAll (ProductGetAllRequest) returns (ProductGetAllResponce);
   rpc Get (ProductGetRequest) returns (ProductGetResponce);
-  // GetByName
 }
 
 message ProductGetAllRequest{

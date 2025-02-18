@@ -1,7 +1,8 @@
 ﻿using DAL.Abstractions.Interfaces.Repositories;
-using DAL.EFCore.PostgreSQL;
+using DAL.Abstractions.Entities;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
+using DAL.EFCore.PostgreSQL;
 
 namespace DAL.EFCore.Repositories
 {
@@ -13,14 +14,24 @@ namespace DAL.EFCore.Repositories
             _context = context;
         }
 
-        public void CreateOrder(Order order)
+        public long CreateOrder(Order order)
         {
-            throw new NotImplementedException();
+            var entry = _context.Orders.Add(order);
+
+            _context.SaveChanges();
+            order = entry.Entity;
+
+            return (long)entry.Entity.Number;
+        }
+
+        public Task<long> CreateOrderAsync(Order order)
+        {
+            return Task.FromResult(CreateOrder(order));
         }
 
         public Order Get(int id)
         {
-            return _context.Orders.First(or => or.Number == id);
+            return _context.Orders.FirstOrDefault(or => or.Number == id);
         }
 
         public Order Get(int id, List<string> include)
@@ -29,15 +40,15 @@ namespace DAL.EFCore.Repositories
 
             foreach (var item in include)
             {
-                queryable.Include(item);
+                queryable = queryable.Include(item);
             }
 
-            return queryable.First(or => or.Number == id);
+            return queryable.FirstOrDefault(or => or.Number == id);
         }
 
         public Order Get(Expression<Func<Order, bool>> expression)
         {
-            return _context.Orders.First(expression);
+            return _context.Orders.FirstOrDefault(expression);
         }
 
         public Order Get(Expression<Func<Order, bool>> expression, List<string> include)
@@ -46,10 +57,15 @@ namespace DAL.EFCore.Repositories
 
             foreach (var item in include)
             {
-                queryable.Include(item);
+                queryable = queryable.Include(item);
             }
 
-            return queryable.First(expression);
+            return queryable.FirstOrDefault(expression);
+        }
+
+        public async Task<ICollection<Order>> GetAllAsync(Expression<Func<Order, bool>> expression)
+        {
+            return await _context.Orders.Where(expression).ToListAsync();
         }
 
         public Task<Order> GetAsync(int id, List<string> include)

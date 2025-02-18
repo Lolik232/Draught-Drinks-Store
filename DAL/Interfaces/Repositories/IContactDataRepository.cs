@@ -1,4 +1,4 @@
-﻿using DAL.EFCore.PostgreSQL;
+﻿using DAL.Abstractions.Entities;
 
 namespace DAL.Abstractions.Interfaces.Repositories
 {

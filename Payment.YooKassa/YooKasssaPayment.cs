@@ -1,7 +1,7 @@
 ﻿using DAL.Abstractions.Interfaces.Payment;
 using DAL.Abstractions.Interfaces.Repositories;
-using DAL.EFCore.PostgreSQL;
 using System;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Security.Cryptography;
 using System.Text.Json;
@@ -11,6 +11,13 @@ namespace Payment.YooKassa
 {
     public class YooKasssaPayment : IPaymentService
     {
+        private readonly IPaymentRepository _paymentRepository;
+
+        public YooKasssaPayment(IPaymentRepository paymentRepository)
+        {
+            _paymentRepository = paymentRepository;
+        }
+
         public class ConfirmationCreate
         {
             [JsonPropertyName("type")]
@@ -112,17 +119,11 @@ namespace Payment.YooKassa
             public bool Test { get; set; }
         }
 
-        public YooKasssaPayment()
-        {
-        }
 
         public async Task<string> CreatePayment(
-            int paymentNumber,
-            int orderNumber,
-            string returnUrl,
-            Amount amount,
-            string description)
+            int orderNumber, string returnUrl, Amount amount, string description)
         {
+
             var payment = new PaymentCreate
             {
                 Amount = amount,
@@ -139,33 +140,32 @@ namespace Payment.YooKassa
                 }
             };
 
+
+
             // TODO: send to yookassa api
-            using (var client = new HttpClient())
+            using var client = new HttpClient();
+            client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue(
+               "Basic",
+                "ODc0NzU0OnRlc3Rfck5OZlc4aU0tdWp4MkZnb2xqcFE5NzRIWmVCWDVNQXBqb3JVQTNzM1BVNA=="
+                );
+            Random random = new Random();
+
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyz";
+            var idempotenceKey = new string(Enumerable.Repeat(chars, 10)
+                 .Select(s => s[random.Next(s.Length)]).ToArray());
+
+            client.DefaultRequestHeaders.Add("Idempotence-Key", idempotenceKey);
+
+            try
             {
-                //client.DefaultRequestHeaders.Add("874754", "test_rNNfW8iM-ujx2FgoljpQ974HZeBX5MApjorUA3s3PU4");
-                client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue(
-                   "Basic",
-                    "ODc0NzU0OnRlc3Rfck5OZlc4aU0tdWp4MkZnb2xqcFE5NzRIWmVCWDVNQXBqb3JVQTNzM1BVNA=="
-                    );
-                Random random = new Random();
+                var res = await client.PostAsJsonAsync("https://api.yookassa.ru/v3/payments", payment);
 
-                const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyz";
-               var idempotenceKey = new string(Enumerable.Repeat(chars, 10)
-                    .Select(s => s[random.Next(s.Length)]).ToArray());
-
-                client.DefaultRequestHeaders.Add("Idempotence-Key", idempotenceKey);
-
-                try
-                {
-                    var res = await client.PostAsJsonAsync("https://api.yookassa.ru/v3/payments", payment);
-
-                    var responce = await res.Content.ReadFromJsonAsync<PaymentResponce>();
-                    return responce!.Id;
-                }
-                catch (Exception)
-                {
-                    throw new PaymentInvalidArgumentsException();
-                }
+                var responce = await res.Content.ReadFromJsonAsync<PaymentResponce>();
+                return responce.Confirmation.ConfirmationUrl;
+            }
+            catch (Exception)
+            {
+                throw new PaymentInvalidArgumentsException();
             }
         }
     }

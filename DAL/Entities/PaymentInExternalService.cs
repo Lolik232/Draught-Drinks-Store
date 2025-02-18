@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace DAL.EFCore.PostgreSQL;
+
+namespace DAL.Abstractions.Entities;
 
 public partial class PaymentInExternalService
 {
-    public long Id { get; set; }
+    public int Id { get; set; }
 
     public string ExternalPaymentId { get; set; } = null!;
 
